@@ -61,7 +61,11 @@ class Game:
             "Start": True,
             "Cancel": False
         }
-        return util.run_row_selector(inputs, self.stdscr, 3, f"Starting {game_title}")
+        input_values, result = util.run_row_selector(inputs, self.stdscr, 3, f"Starting {game_title}")
+        self.selected_year = input_values["Year"]
+        self.selected_month = input_values["Month"]
+        self.selected_day = input_values["Day"]
+        return result
 
     def render(self):
         self.stdscr.clear()

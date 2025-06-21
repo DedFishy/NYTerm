@@ -21,11 +21,9 @@ def load_json_from_url(url):
         return response.json()
     else:
         return None
-    
-def render_rows_to_center(rows: dict[str, int], stdscr: curses.window):
-    width = max((len(row) for row in rows))
-    height = len(rows)
-    y_coord, x_coord = stdscr.getmaxyx()
+
+def get_starting_dimensions_yx(width, height, max_yx):
+    y_coord, x_coord = max_yx
     y_coord /= 2
     x_coord /= 2
     y_coord -= height/2
@@ -33,6 +31,11 @@ def render_rows_to_center(rows: dict[str, int], stdscr: curses.window):
 
     y_coord = int(y_coord)
     x_coord = int(x_coord)
+    return y_coord, x_coord
+
+def render_rows_to_center(rows: dict[str, int], stdscr: curses.window):
+    
+    y_coord, x_coord = get_starting_dimensions_yx(max((len(row) for row in rows)), len(rows), stdscr.getmaxyx())
 
     for row in rows.keys():
         stdscr.addstr(y_coord, x_coord, row, curses.color_pair(rows[row]))
@@ -70,4 +73,11 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
                 inputs[inputs_keys[selected]] -= 1
         elif key == "\n":
             if type(inputs[inputs_keys[selected]]) != int:
-                return inputs[inputs_keys[selected]]
+                return inputs, inputs[inputs_keys[selected]]
+            
+def _log(*string):
+    conv_string = []
+    for element in string:
+        conv_string.append(str(element))
+    with open("log.txt", "w+") as file:
+        file.write("|".join(conv_string))
