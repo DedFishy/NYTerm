@@ -5,6 +5,7 @@ from curses import window
 from const import COLORS
 from importlib import resources as impresources
 import word_lists
+from bisect import bisect_left
 
 class Wordle:
     BASE_URL = "https://www.nytimes.com/svc/wordle/v2/"
@@ -20,19 +21,23 @@ class Wordle:
 
     did_win = False
     letters = "abcdefghijklmnopqrstuvwxyz"
+    letter_statuses = {} # -1=unknown, 0=gray, 1=yellow, 2=green
+    letter_status_codes = {-1: COLORS["UNKNOWN"], 0: 0, 1: COLORS["YELLOW"], 2: COLORS["GREEN"]}
     letter_grid = []
 
     with (impresources.files(word_lists) / "wordle.txt").open("rt") as word_list_file:
-        allowed_words = word_list_file.readlines()
+        allowed_words = word_list_file.read().split("\n")
 
     solution = None
     def __init__(self, year, month, day):
         self.year = str(year)
         self.month = str(month)
         self.day = str(day)
-        self.letter_grid = [[(" ", 0) for _ in range(5)] for _ in range(6)]
+        self.letter_grid = [[(" ", -1) for _ in range(5)] for _ in range(6)]
         self.guesses = 0
         self.did_win = False
+        for letter in self.letters:
+            self.letter_statuses[letter] = -1
         self.load()
 
     def get_from_date(self, date: datetime):
@@ -62,46 +67,68 @@ class Wordle:
                 color = letter_tup[1]
                 letter_tile = self.construct_letter_tile(letter)
 
-                stdscr.addstr(y+0, x, letter_tile[0], curses.color_pair(color))
-                stdscr.addstr(y+1, x, letter_tile[1], curses.color_pair(color))
-                stdscr.addstr(y+2, x, letter_tile[2], curses.color_pair(color))
+                color_pair = curses.color_pair(self.letter_status_codes[color if color != -1 else 0])
+
+                stdscr.addstr(y+0, x, letter_tile[0], color_pair)
+                stdscr.addstr(y+1, x, letter_tile[1], color_pair)
+                stdscr.addstr(y+2, x, letter_tile[2], color_pair)
                 x+=self.LETTER_WIDTH
             y+=self.LETTER_HEIGHT
         
-        message = "Good luck!"
+        message = None
         if self.did_win:
             message = "Congratulations!"
         elif self.guesses > 5:
-            message = "Too bad! Solution: " + self.solution
-        stdscr.addstr(y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
+            message = "Too bad! Solution: " + self.solution.upper()
+        if message == None:
+            alphabet_x = int(stdscr.getmaxyx()[1]/2)-(26/2)
+            for letter in self.letter_statuses.keys():
+                stdscr.addstr(y, int(alphabet_x), letter, curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]))
+                alphabet_x += 1
+        else:
+            stdscr.addstr(y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
+
+    def is_guess_in_word_list(self):
+        current_guess = "".join([x[0] for x in self.letter_grid[self.guesses]])
+        index = bisect_left(self.allowed_words, current_guess)
+        return self.allowed_words[index] == current_guess
 
     def process_current_guess(self):
         current_guess = [x[0] for x in self.letter_grid[self.guesses]]
+        if not self.is_guess_in_word_list():
+            return None
         solution = list(self.solution)
         colors = [0,0,0,0,0]
 
         # Process Green
         for i in range(0, 5):
             if current_guess[i] == solution[i]:
-                colors[i] = COLORS["GREEN"]
+                self.letter_statuses[current_guess[i]] = 2
+                colors[i] = 2
                 current_guess[i] = " "
                 solution[i] = " "
         # Process Yellow
         for i in range(0, 5):
             if current_guess[i] != " ":
-                if current_guess[i] in solution:
-                    colors[i] = COLORS["YELLOW"]
-                    solution[solution.index(current_guess[i])] = " "
-                    current_guess[i] = " "
+                if self.letter_statuses[current_guess[i]] != 2: # Don't overwrite green!
+                    if current_guess[i] in solution:
+                        
+                        self.letter_statuses[current_guess[i]] = 1
+                        colors[i] = 1
+                        solution[solution.index(current_guess[i])] = " "
+                        current_guess[i] = " "
+                    else:
+                        self.letter_statuses[current_guess[i]] = 0
+                        colors[i] = 0
+                        current_guess[i] = " "
+                
         
         for i in range(0, 5):
             old_tup = self.letter_grid[self.guesses][i]
             self.letter_grid[self.guesses][i] = (old_tup[0], colors[i])
 
-        util._log(current_guess, solution, colors)
-
         self.guesses += 1
-        return colors.count(COLORS["GREEN"]) == len(colors)
+        return colors.count(2) == len(colors)
 
     def start(self, stdscr: window):
         current_character_index = 0
@@ -119,8 +146,10 @@ class Wordle:
                     return
                 if current_character_index > 4:
                     self.did_win = self.process_current_guess()
+                    if self.did_win == None:
+                        self.letter_grid[self.guesses] = [(" ", 0) for _ in range(5)]
                     current_character_index = 0
-                    
+
             elif key == "KEY_BACKSPACE":
 
                 if current_character_index <= 4: self.letter_grid[self.guesses][current_character_index] = (" ", 0)

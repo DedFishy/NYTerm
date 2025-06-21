@@ -34,14 +34,12 @@ class Game:
             "\n": lambda: self.OPTIONS[list(self.OPTIONS.keys())[self.selected]]()
         }
 
-        for option in list(self.OPTIONS.keys()):
-            self.OPTIONS["- " + option] = self.OPTIONS[option]
-            del self.OPTIONS[option]
-
     def start_wordle(self):
         do_start = self.select_ymd("Wordle")
         if do_start:
             wordle = Wordle(self.selected_year, self.selected_month, self.selected_day)
+            if wordle.solution == None:
+                return
             wordle.start(self.stdscr)
 
     def quit(self):
@@ -61,7 +59,7 @@ class Game:
             "Start": True,
             "Cancel": False
         }
-        input_values, result = util.run_row_selector(inputs, self.stdscr, 3, f"Starting {game_title}")
+        input_values, result = util.run_row_selector(inputs, self.stdscr, 3, f"Select date to play {game_title}")
         self.selected_year = input_values["Year"]
         self.selected_month = input_values["Month"]
         self.selected_day = input_values["Day"]
@@ -69,15 +67,20 @@ class Game:
 
     def render(self):
         self.stdscr.clear()
-        rows_to_render = {
-            "NYTerminal": COLORS["TITLE"], 
-            "The NYT games implemented in the terminal.": COLORS["SUBTITLE"], 
-            "By Boyne Gregg": COLORS["SUBTITLE"]
-            }
+        rows_to_render = [
+            ("████████████", 0),
+            [("██    ", 0), ("███", COLORS["YELLOW"]), ("█", COLORS["BLUE"]), ("██", 0)],
+            [("██", 0), ("█", COLORS["BLUE"]), ("███", COLORS["GREEN"]), (" >  ██", 0)],
+            [("██ ", 0), ("███", COLORS["YELLOW"]), ("  ▔ ██", 0)],
+            ("████████████", 0),
+            ("NYTerminal", COLORS["TITLE"]), 
+            ("The NYT games implemented in the terminal.", COLORS["SUBTITLE"]), 
+            ("By Boyne Gregg", COLORS["SUBTITLE"])
+            ]
         i = 0
         for option in self.OPTIONS.keys():
-            if i == self.selected: rows_to_render[option] = COLORS["SELECTED_OPTION"]
-            else: rows_to_render[option] = COLORS["UNSELECTED_OPTION"]
+            if i == self.selected: rows_to_render.append((option, COLORS["SELECTED_OPTION"]))
+            else: rows_to_render.append((option, COLORS["UNSELECTED_OPTION"]))
             i += 1
 
         util.render_rows_to_center(rows_to_render, self.stdscr)
@@ -89,6 +92,7 @@ class Game:
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
         curses.curs_set(False)
         
@@ -105,4 +109,7 @@ class Game:
 def run():
     game = Game()
     
-    curses.wrapper(game.start)
+    try:
+        curses.wrapper(game.start)
+    except KeyboardInterrupt:
+        pass

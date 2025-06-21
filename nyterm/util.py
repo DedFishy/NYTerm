@@ -33,12 +33,20 @@ def get_starting_dimensions_yx(width, height, max_yx):
     x_coord = int(x_coord)
     return y_coord, x_coord
 
-def render_rows_to_center(rows: dict[str, int], stdscr: curses.window):
-    
-    y_coord, x_coord = get_starting_dimensions_yx(max((len(row) for row in rows)), len(rows), stdscr.getmaxyx())
+def render_rows_to_center(rows: list[tuple[str,int]|dict[str,int]], stdscr: curses.window, center_all = True):
+    width = max((len("".join(list(row.keys()))) if type(row) == dict else len(row[0]) for row in rows))
+    y_coord, x_coord = get_starting_dimensions_yx(width, len(rows), stdscr.getmaxyx())
 
-    for row in rows.keys():
-        stdscr.addstr(y_coord, x_coord, row, curses.color_pair(rows[row]))
+    for row in rows:
+        if type(row) == list:
+            current_x = x_coord
+            row_width = len("".join(x[0] for x in row))
+            current_x += int(width/2 - row_width/2)
+            for section in row:
+                stdscr.addstr(y_coord, current_x, section[0], curses.color_pair(section[1]))
+                current_x += len(section[0])
+        else:
+            stdscr.addstr(y_coord, x_coord, row[0].center(width) if center_all else row[0], curses.color_pair(row[1]))
         y_coord += 1
 
 def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default, title):
@@ -49,15 +57,14 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
     while still_selecting:
         stdscr.clear()
         row = []
+        row.append((" ", 0))
         for input in inputs_keys:
-            if input == inputs_keys[selected]:
-                row.append(f"[{input.upper()}]" + (f": {inputs[input]}" if type(inputs[input]) == int else ""))
-            else:
-                row.append(input + (f": {inputs[input]}" if type(inputs[input]) == int else ""))
-        render_rows_to_center({
-            title:COLORS["SUBTITLE"], 
-            " | ".join(row):COLORS["SELECTED_OPTION"]
-        },
+            row.append((f"{input}" + (f": {inputs[input]}" if type(inputs[input]) == int else ""), COLORS["SELECTED_OPTION" if input == inputs_keys[selected] else "UNSELECTED_OPTION"]))
+            row.append((" | ", 0))
+        render_rows_to_center([
+            (title,COLORS["SUBTITLE"]), 
+            row
+        ],
         stdscr)
         
         key = stdscr.getkey()
@@ -74,6 +81,8 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
         elif key == "\n":
             if type(inputs[inputs_keys[selected]]) != int:
                 return inputs, inputs[inputs_keys[selected]]
+            
+            
             
 def _log(*string):
     conv_string = []
