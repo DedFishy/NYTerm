@@ -3,6 +3,7 @@ import time
 from const import COLORS
 from connections import Connections
 from wordle import Wordle
+from strands import Strands
 import util
 import datetime
 
@@ -25,6 +26,7 @@ class Game:
 
     def __init__(self):
         self.OPTIONS = {
+            "Strands": self.start_strands,
             "Connections": self.start_connections,
             "Wordle": self.start_wordle,
             
@@ -51,6 +53,13 @@ class Game:
             if connections.solution == None:
                 return
             connections.start(self.stdscr)
+    def start_strands(self):
+        do_start = self.select_ymd("Strands")
+        if do_start:
+            strands = Strands(self.selected_year, self.selected_month, self.selected_day)
+            if strands.board == None:
+                return
+            strands.start(self.stdscr)
 
     def quit(self):
         self.running = False
