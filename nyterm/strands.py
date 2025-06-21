@@ -1,5 +1,6 @@
 import curses
 import math
+import random
 import util
 from datetime import datetime
 from curses import window
@@ -28,14 +29,19 @@ class Strands:
     theme_coords = {}
     clue = ""
     guessed_theme_words = []
+    guessed_theme_words_coords = []
 
     hints = 0
     current_hint_progress = 0
 
+    current_hint_coords = []
+    target_hint_word = ""
+    show_current_hint_order = False
+
     hint_progress_chars = {
-        0: "░",
-        1: "▒",
-        2: "▓",
+        0: " ",
+        1: "▃",
+        2: "▅",
         3: "█"
     }
 
@@ -61,7 +67,8 @@ class Strands:
         self.selected_coords = []
         self.already_guessed = []
         self.guessed_theme_words = []
-        self.hints = 0
+        self.guessed_theme_words_coords = []
+        self.hints = 10
         self.current_hint_progress = 0
         self.load()
 
@@ -144,7 +151,7 @@ class Strands:
             message = "Congratulations!"
             
         else:
-            message = f"Theme: {self.clue} | Hints: {self.hint_progress_chars[3]*self.hints}{self.hint_progress_chars[self.current_hint_progress]}"
+            message = f"Theme: {self.clue} | Hints: {self.hint_progress_chars[3]*self.hints}{self.hint_progress_chars[self.current_hint_progress]} [TAB to use]"
 
         for row in self.board:
             x = start_coord_yx[1]
@@ -155,6 +162,17 @@ class Strands:
                     selected_index = self.selected_coords.index((current_letter_x, current_letter_y))
                 except ValueError: selected_index = -1
 
+                try:
+                    theme_words_index = self.guessed_theme_words_coords.index([current_letter_x, current_letter_y])
+                except ValueError: theme_words_index = -1
+
+                try:
+                    hint_word_index = self.current_hint_coords.index([current_letter_y, current_letter_x])
+                except ValueError: hint_word_index = -1
+
+                is_in_theme_word = False
+                is_in_hint_word = False
+
                 next_tile_coords = None
                 previous_tile_coords = None
                 if selected_index != -1:
@@ -162,11 +180,25 @@ class Strands:
                         next_tile_coords = self.selected_coords[selected_index+1]
                     if selected_index > 0:
                         previous_tile_coords = self.selected_coords[selected_index-1]
+                elif theme_words_index != -1:
+                    is_in_theme_word = True
+                    if theme_words_index < len(self.guessed_theme_words_coords)-1:
+                        next_tile_coords = self.guessed_theme_words_coords[theme_words_index+1]
+                    if theme_words_index > 0:
+                        previous_tile_coords = self.guessed_theme_words_coords[theme_words_index-1]
+                elif hint_word_index != -1:
+                    is_in_hint_word = True
+                    if self.show_current_hint_order:
+                        if hint_word_index < len(self.current_hint_coords)-1:
+                            next_tile_coords = self.current_hint_coords[hint_word_index+1].copy()
+                            next_tile_coords.reverse()
+                        if hint_word_index > 0:
+                            previous_tile_coords = self.current_hint_coords[hint_word_index-1].copy()
+                            previous_tile_coords.reverse()
 
                 if next_tile_coords != None: directions.append(self.get_direction((current_letter_x, current_letter_y), next_tile_coords))
                 if previous_tile_coords != None: directions.append(self.get_direction((current_letter_x, current_letter_y), previous_tile_coords))
 
-                if (selected_index != -1): util._log(selected_index, next_tile_coords, previous_tile_coords, directions)
 
                 word_tile = self.construct_letter(letter, directions)
                 selected = False
@@ -182,6 +214,10 @@ class Strands:
                         color_pair = curses.color_pair(COLORS["SELECTED_OPTION"])
                 elif selected:
                     color_pair = curses.color_pair(COLORS["TOGGLED_OPTION"])
+                elif is_in_theme_word:
+                    color_pair = curses.color_pair(COLORS["BLUE"])
+                elif is_in_hint_word:
+                    color_pair = curses.color_pair(COLORS["GREEN"])
                 else:
                     color_pair = curses.color_pair(COLORS["UNSELECTED_OPTION"])
 
@@ -198,17 +234,60 @@ class Strands:
         stdscr.addstr(y, start_coord_yx[1], message.center(self.LETTER_WIDTH*len(self.board[0])))
     
     def process_guess(self):
-        i = 0
-        for category in self.solution:
-            is_valid = True
-            for word in category["cards"]:
-                if word["content"] not in self.selected_items:
-                    is_valid = False
-                    break
-            if is_valid:
-                return i
-            i+=1
-        return -1
+        formed_word = ""
+        for coord in self.selected_coords:
+            formed_word += self.board[coord[1]][coord[0]]
+        if formed_word in self.theme_words and not formed_word in self.already_guessed:
+            is_correct_theme_word = True
+            i = 0
+            for coord in self.theme_coords[formed_word]:
+                if not coord[0] == self.selected_coords[i][0] and coord[1] == self.selected_coords[i][1]:
+                    is_correct_theme_word = False
+                i += 1
+            if is_correct_theme_word:
+                if self.target_hint_word == formed_word:
+                    self.target_hint_word = ""
+                    self.current_hint_coords = []
+                    self.show_current_hint_order = False
+                self.already_guessed.append(formed_word)
+                self.guessed_theme_words.append(formed_word)
+                new_coords = self.theme_coords[formed_word].copy()
+                for coord in new_coords: coord.reverse()
+                self.guessed_theme_words_coords.extend(new_coords)
+                self.guessed_theme_words_coords.append(None) # Separator between word connections
+                
+        elif formed_word not in self.already_guessed and self.valid_words[bisect_left(self.valid_words, formed_word)] == formed_word:
+            self.already_guessed.append(formed_word)
+            self.current_hint_progress+=1
+            if self.current_hint_progress >= 3:
+                self.hints+=1
+                self.current_hint_progress=0
+        
+        self.selected_coords = []
+
+        if len(self.guessed_theme_words) >= len(self.theme_words):
+            
+            self.did_win = True
+    
+    def use_hint(self):
+        if self.hints > 0:
+            self.hints -= 1
+        else:
+            return
+        candidate_words = self.theme_words.copy()
+        for word in self.already_guessed:
+            try: candidate_words.remove(word)
+            except ValueError: pass
+        if self.current_hint_coords:
+            if not self.show_current_hint_order:
+                self.show_current_hint_order = True
+            else:
+                self.hints += 1
+        else:
+            self.target_hint_word = random.choice(candidate_words)
+            self.current_hint_coords = self.theme_coords[self.target_hint_word]
+
+        util._log(self.show_current_hint_order)
 
     def start(self, stdscr: window):
         while True:
@@ -224,26 +303,17 @@ class Strands:
                     else:
                         self.selected_coords = []
                 else:
-                    if len(self.selected_coords) <= 0 or abs(coord[0]-self.selected_coords[-1][0]) <= 1 or abs(coord[1]-self.selected_coords[-1][1]):
+                    if len(self.selected_coords) <= 0 or (abs(coord[0]-self.selected_coords[-1][0]) <= 1 and abs(coord[1]-self.selected_coords[-1][1]) <= 1):
                         self.selected_coords.append(coord)
                     else:
                         self.selected_coords = []
                     
             elif key == "\n":
-                if self.did_win or self.guesses_left <= 0: return
-                self.selected_coords = []
-                if self.selected_items in self.already_guessed or len(self.selected_items) < 4:
-                    self.selected_items = []
-                else:
-                    self.already_guessed.append(self.selected_items)
-                    index = self.process_guess()
-                    if index == -1:
-                        self.guesses_left -= 1
-                    else:
-                        self.solved.append(index)
-                        if len(self.solved) >= 4:
-                            self.did_win = True
-                        
+                if self.did_win: return
+                self.process_guess()
+            
+            elif key == "\t":
+                self.use_hint()
             
             elif key == "KEY_LEFT":
                 self.selected_x -= 1
