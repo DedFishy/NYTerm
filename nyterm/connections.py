@@ -44,6 +44,11 @@ class Connections:
         self.day = str(day)
         self.guesses_left = 4
         self.did_win = False
+        self.selected_x = 0
+        self.selected_y = 0
+        self.selected_coords = []
+        self.solved = []
+        self.already_guessed = []
         self.load()
 
     def get_from_date(self, date: datetime):
@@ -70,12 +75,20 @@ class Connections:
     def construct_category_tile(self, title: str, words: list[str]):
         inner_width = self.TILE_WIDTH*4-2
         middle_text = ", ".join(words)
+        if len(title) > inner_width:
+            title = title[0:(inner_width-3)] + "..."
         top = f"┌{title.center(inner_width, "─")}┐"
         middle = "│" + str(middle_text).center(inner_width) + "│"
         bottom = f"└{"─"*inner_width}┘"
         return top, middle, bottom
     
     def construct_game_matrix(self):
+        # If we just lost, reveal all answers
+        if self.guesses_left <= 0:
+            for category in range(4):
+                if category not in self.solved:
+                    self.solved.append(category)
+
         matrix = [[None for _ in range(4)] for _ in range(4)]
         tiles_to_display = self.solution.copy()
         
@@ -120,6 +133,15 @@ class Connections:
         current_tile_x = 0
         current_tile_y = 0
 
+        message = None
+        if self.did_win:
+            message = "Congratulations!"
+        elif self.guesses_left <= 0:
+            message = "Too bad!"
+            
+        else:
+            message = f"Mistakes Remaining: {"•"*self.guesses_left}"
+
         for row in matrix:
             x = start_coord_yx[1]
             if type(row) == tuple:
@@ -158,13 +180,7 @@ class Connections:
                 current_tile_y+=1
             y+=self.TILE_HEIGHT
         
-        message = None
-        if self.did_win:
-            message = "Congratulations!"
-        elif self.guesses_left <= 0:
-            message = "Too bad!"
-        else:
-            message = f"Mistakes Remaining: {"•"*self.guesses_left}"
+        
 
         stdscr.addstr(y, start_coord_yx[1], message.center(self.TILE_WIDTH*4))
     
@@ -199,7 +215,7 @@ class Connections:
                 if self.did_win or self.guesses_left <= 0: return
                 if len(self.selected_coords) >= 3:
                     self.selected_coords = []
-                    if self.selected_items in self.already_guessed:
+                    if self.selected_items in self.already_guessed or len(self.selected_items) < 4:
                         self.selected_items = []
                     else:
                         self.already_guessed.append(self.selected_items)
