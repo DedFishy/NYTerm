@@ -1,6 +1,7 @@
 import curses
 import time
 from const import COLORS
+from connections import Connections
 from wordle import Wordle
 import util
 import datetime
@@ -24,7 +25,9 @@ class Game:
 
     def __init__(self):
         self.OPTIONS = {
+            "Connections": self.start_connections,
             "Wordle": self.start_wordle,
+            
             "Quit": self.quit,
         }
 
@@ -41,6 +44,13 @@ class Game:
             if wordle.solution == None:
                 return
             wordle.start(self.stdscr)
+    def start_connections(self):
+        do_start = self.select_ymd("Connections")
+        if do_start:
+            connections = Connections(self.selected_year, self.selected_month, self.selected_day)
+            if connections.solution == None:
+                return
+            connections.start(self.stdscr)
 
     def quit(self):
         self.running = False
@@ -93,6 +103,9 @@ class Game:
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_WHITE)
         curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK),
+        curses.init_pair(8, curses.COLOR_RED, curses.COLOR_WHITE),
 
         curses.curs_set(False)
         
