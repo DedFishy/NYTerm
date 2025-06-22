@@ -5,6 +5,7 @@ from wordle import Wordle
 from strands import Strands
 from mini import Mini
 from spelling_bee import SpellingBee
+from spelling_bee_loader import load_spelling_bee, loader
 import util
 import datetime
 import os
@@ -59,8 +60,20 @@ class Game:
         util._log(self.row_positions, func, candidate, mouse_event)
 
     def start_bee(self):
-        bee = SpellingBee()
-        bee.start(self.stdscr)
+        load_spelling_bee()
+        option = util.run_button_row(["Today's", "Yesterday's", "This Week", "Last Week", "Cancel"], self.stdscr, 0, "Select Spelling Bee Day")
+        if option == "Today's":
+            SpellingBee(loader.game_data["today"]).start(self.stdscr)
+        elif option == "Yesterday's":
+            SpellingBee(loader.game_data["yesterday"]).start(self.stdscr)
+        elif option == "This Week":
+            puzzle_options = {puzzle["displayWeekday"]: puzzle for puzzle in loader.game_data["pastPuzzles"]["thisWeek"]}
+            option = util.run_button_row(list(puzzle_options.keys()), self.stdscr, 0, "This Week's Puzzles")
+            SpellingBee(puzzle_options[option]).start(self.stdscr)
+        elif option == "Last Week":
+            puzzle_options = {puzzle["displayWeekday"]: puzzle for puzzle in loader.game_data["pastPuzzles"]["lastWeek"]}
+            option = util.run_button_row(list(puzzle_options.keys()), self.stdscr, 0, "Last Week's Puzzles")
+            SpellingBee(puzzle_options[option]).start(self.stdscr)
 
     def start_wordle(self):
         do_start = self.select_ymd("Wordle")

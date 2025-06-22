@@ -10,9 +10,9 @@ class SpellingBeeLoader(HTMLParser):
             data = json.loads(data)
             self.game_data = data
 
+loader = SpellingBeeLoader()
+
 def load_spelling_bee():
     data = requests.get("https://www.nytimes.com/puzzles/spelling-bee")
     html = data.text
-    parser = SpellingBeeLoader()
-    parser.feed(html)
-    return parser.game_data
+    loader.feed(html)

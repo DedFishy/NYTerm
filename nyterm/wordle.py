@@ -91,7 +91,9 @@ class Wordle:
     def is_guess_in_word_list(self):
         current_guess = "".join([x[0] for x in self.letter_grid[self.guesses]])
         index = bisect_left(self.allowed_words, current_guess)
-        return self.allowed_words[index] == current_guess
+        if len(self.allowed_words) > 0:
+            return self.allowed_words[index] == self.typed_word
+        return False
 
     def process_current_guess(self):
         current_guess = [x[0] for x in self.letter_grid[self.guesses]]

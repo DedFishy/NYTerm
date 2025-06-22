@@ -63,7 +63,7 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
         stdscr.clear()
         option_positions = {}
         row = []
-        row.append((" ", 0))
+        row.append((" | ", 0))
         for input in inputs_keys:
             option_positions[input] = len("".join(x[0] for x in row))
             row.append((f"{input}" + (f": {inputs[input]}" if type(inputs[input]) == int else ""), COLORS["SELECTED_OPTION" if input == inputs_keys[selected] else "UNSELECTED_OPTION"]))
@@ -98,7 +98,6 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
                     else:
                         break
                 if clicked:
-                    inputs[inputs_keys[selected]]
                     _log(mouse, x_offset, clicked, option_positions)
                     old_selected = selected
                     selected = list(inputs.keys()).index(clicked)
@@ -109,6 +108,53 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
         elif key == "\n":
             if type(inputs[inputs_keys[selected]]) != int:
                 return inputs, inputs[inputs_keys[selected]]
+
+def run_button_row(inputs: list[str], stdscr: curses.window, default, title):
+    
+    selected = default
+    still_selecting = True
+    while still_selecting:
+        stdscr.clear()
+        option_positions = {}
+        row = []
+        row.append((" | ", 0))
+        for input in inputs:
+            option_positions[input] = len("".join(x[0] for x in row))
+            row.append((f"{input}", COLORS["SELECTED_OPTION" if inputs.index(input) == selected else "UNSELECTED_OPTION"]))
+            row.append((" | ", 0))
+        render_rows_to_center([
+            (title,COLORS["SUBTITLE"]), 
+            row
+        ],
+        stdscr)
+        
+        key = stdscr.getkey()
+        if key == "KEY_LEFT" and selected > 0:
+            selected -= 1
+        elif key == "KEY_RIGHT" and selected < len(inputs) - 1: 
+            selected += 1
+        elif key == "KEY_MOUSE":
+            mouse = curses.getmouse()
+            x_offset = mouse[1] - (int(stdscr.getmaxyx()[1]/2 - len("".join(x[0] for x in row))/2))
+
+            if mouse[4] == 2:
+
+                clicked = None
+                for option in option_positions.keys():
+                    if option_positions[option] < x_offset:
+                        clicked = option
+                    else:
+                        break
+                if clicked:
+                    _log(mouse, x_offset, clicked, option_positions)
+                    old_selected = selected
+                    selected = inputs.index(clicked)
+                    if selected == old_selected:
+                        return clicked
+            
+
+        elif key == "\n":
+            return inputs[selected]
             
 def prompt_screen_resize(stdscr: curses.window):
     stdscr.clear()

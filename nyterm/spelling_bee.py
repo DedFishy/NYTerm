@@ -39,12 +39,12 @@ class SpellingBee:
     }
 
     solution = None
-    def __init__(self):
+    def __init__(self, game_data):
         self.did_win = False
+        self.game_data = game_data
         self.load()
     
     def load(self):
-        self.game_data = load_spelling_bee()["today"]
         if self.game_data != None:
             self.letters = self.game_data["validLetters"]
             self.allowed_words = self.game_data["answers"]
@@ -99,7 +99,9 @@ class SpellingBee:
 
     def is_guess_in_word_list(self):
         index = bisect_left(self.allowed_words, self.typed_word)
-        return self.allowed_words[index] == self.typed_word
+        if len(self.allowed_words) > 0:
+            return self.allowed_words[index] == self.typed_word
+        return False
     
     def get_score_for_word(self, word):
         score = len(word)
