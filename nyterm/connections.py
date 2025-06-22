@@ -215,7 +215,7 @@ class Connections:
                 self.select_current()
                     
             elif key == "\n":
-                if self.did_win or self.guesses_left <= 0: return
+                if self.did_win or self.guesses_left <= 0: break
                 if len(self.selected_coords) >= 3:
                     self.selected_coords = []
                     if self.selected_items in self.already_guessed:
@@ -243,7 +243,7 @@ class Connections:
             elif key == "KEY_DOWN":
                 self.selected_y += 1
             elif key == "":
-                return
+                break
             elif key == "KEY_MOUSE":
                 mouse = curses.getmouse()
                 if mouse[4] == 2:
@@ -254,3 +254,4 @@ class Connections:
                             self.selected_y = tile_position[1]
                     self.select_current()
             stdscr.refresh()
+        return self.did_win, len(self.solved)

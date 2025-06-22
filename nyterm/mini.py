@@ -31,6 +31,8 @@ class Mini:
 
     cell_coords = {}
 
+    game_time = 0
+
     def __init__(self):
         self.did_win = False
         self.selected_cell = -1
@@ -62,6 +64,8 @@ class Mini:
                 if clue["direction"] == "Down":
                     for cell in clue["cells"]:
                         self.clues_down[cell] = clue["label"] + ": " + clue["text"][0]["plain"]
+            
+            self.game_time = 0
 
     def construct_letter_tile(self, number, letter):
         top = f"{number}───┐"
@@ -107,7 +111,8 @@ class Mini:
         
         message = None
         if self.did_win:
-            message = f"You solved the Mini in {int(time.time()-self.start_time)} seconds!"
+            self.game_time = int(time.time()-self.start_time)
+            message = f"You solved the Mini in {self.game_time} seconds!"
         else:
             message = f"{'Across' if self.is_direction_across else 'Down'} " + (self.clues_across if self.is_direction_across else self.clues_down)[self.selected_cell]
         util.addstr(stdscr, start_coord_yx[0] + self.width*self.LETTER_HEIGHT, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
@@ -189,7 +194,8 @@ class Mini:
                         util._log(mouse, self.cell_coords)
             
             elif key == "":
-                return
+                break
                 
 
             stdscr.refresh()
+        return self.did_win, self.game_time

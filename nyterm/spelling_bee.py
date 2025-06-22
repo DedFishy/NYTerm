@@ -120,7 +120,7 @@ class SpellingBee:
                 self.typed_word += key
             elif key == "\n":
                 
-                if self.did_win: return
+                if self.did_win: break
                 
                 if self.is_guess_in_word_list():
                     if not self.typed_word in self.guessed:
@@ -144,6 +144,8 @@ class SpellingBee:
                 self.typed_word = self.typed_word[:-1]
                     
             elif key == "":
-                return
+                break
 
             stdscr.refresh()
+
+        return self.progress / self.max_points

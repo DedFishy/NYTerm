@@ -1,4 +1,5 @@
 import curses
+import math
 from const import COLORS
 from connections import Connections
 from wordle import Wordle
@@ -9,6 +10,7 @@ from spelling_bee_loader import load_spelling_bee, loader
 import util
 import datetime
 import os
+from statman import StatManager
 
 TODAY = datetime.datetime.now()
 
@@ -27,6 +29,8 @@ class Game:
 
     KEYS = {}
 
+    STATMAN = StatManager()
+
     def __init__(self):
         self.OPTIONS = {
             "Spelling Bee": self.start_bee,
@@ -34,7 +38,7 @@ class Game:
             "Strands": self.start_strands,
             "Connections": self.start_connections,
             "Wordle": self.start_wordle,
-            
+            "Stats": self.show_stats,
             "Quit": self.quit,
         }
 
@@ -60,20 +64,24 @@ class Game:
         util._log(self.row_positions, func, candidate, mouse_event)
 
     def start_bee(self):
+        puzzle = None
         load_spelling_bee()
         option = util.run_button_row(["Today's", "Yesterday's", "This Week", "Last Week", "Cancel"], self.stdscr, 0, "Select Spelling Bee Day")
         if option == "Today's":
-            SpellingBee(loader.game_data["today"]).start(self.stdscr)
+            puzzle = loader.game_data["today"]
         elif option == "Yesterday's":
-            SpellingBee(loader.game_data["yesterday"]).start(self.stdscr)
+            puzzle = loader.game_data["yesterday"]
         elif option == "This Week":
             puzzle_options = {puzzle["displayWeekday"]: puzzle for puzzle in loader.game_data["pastPuzzles"]["thisWeek"]}
             option = util.run_button_row(list(puzzle_options.keys()), self.stdscr, 0, "This Week's Puzzles")
-            SpellingBee(puzzle_options[option]).start(self.stdscr)
+            puzzle = puzzle_options[option]
         elif option == "Last Week":
             puzzle_options = {puzzle["displayWeekday"]: puzzle for puzzle in loader.game_data["pastPuzzles"]["lastWeek"]}
             option = util.run_button_row(list(puzzle_options.keys()), self.stdscr, 0, "Last Week's Puzzles")
-            SpellingBee(puzzle_options[option]).start(self.stdscr)
+            puzzle = puzzle_options[option]
+
+        completion_ratio = SpellingBee(puzzle).start(self.stdscr)
+        self.STATMAN.add_spelling_bee(completion_ratio)
 
     def start_wordle(self):
         do_start = self.select_ymd("Wordle")
@@ -82,7 +90,8 @@ class Game:
             if wordle.solution == None:
                 util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
-            wordle.start(self.stdscr)
+            won, attempts = wordle.start(self.stdscr)
+            self.STATMAN.add_wordle(won, attempts)
     def start_connections(self):
         do_start = self.select_ymd("Connections")
         if do_start:
@@ -90,7 +99,8 @@ class Game:
             if connections.solution == None or connections.solution == []:
                 util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
-            connections.start(self.stdscr)
+            won, categories_completed = connections.start(self.stdscr)
+            self.STATMAN.add_connections_game(won, categories_completed)
     def start_strands(self):
         do_start = self.select_ymd("Strands")
         if do_start:
@@ -98,11 +108,63 @@ class Game:
             if strands.board == None or strands.board == []:
                 util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
-            strands.start(self.stdscr)
+            completed, hints_used = strands.start(self.stdscr)
+            self.STATMAN.add_strands(completed, hints_used)
     
     def start_mini(self):
         mini = Mini()
-        mini.start(self.stdscr)
+        completed, time = mini.start(self.stdscr)
+        self.STATMAN.add_mini(completed, time)
+
+    def show_stats(self):
+        selected = 0
+        stat_options = ["Spelling Bee", "Mini", "Connections", "Strands", "Wordle"]
+        while True:
+            self.stdscr.clear()
+
+            rows = [
+                [(" " + x + " ", (COLORS["SELECTED_OPTION"] if stat_options.index(x) == selected else COLORS["UNSELECTED_OPTION"])) for x in stat_options]
+            ]
+            
+            selected_name = stat_options[selected]
+
+            if selected_name == "Spelling Bee":
+                rows.append((f"Games Played: {self.STATMAN.spelling_bee["gamesPlayed"]}", 0))
+                rows.append((f"Average Completion: {round(util.get_average(self.STATMAN.spelling_bee["gameCompletion"]), 2)}", 0))
+            elif selected_name == "Mini":
+                rows.append((f"Games Played: {self.STATMAN.mini["gamesPlayed"]}", 0))
+                rows.append((f"Games Completed: {self.STATMAN.mini["gamesCompleted"]}", 0))
+                rows.append((f"Average Time: {round(util.get_average(self.STATMAN.mini["gameTimes"]), 2)}", 0))
+            elif selected_name == "Connections":
+                rows.append((f"Games Played: {self.STATMAN.connections["gamesPlayed"]}", 0))
+                rows.append((f"Games Won: {self.STATMAN.connections["gamesWon"]}", 0))
+                rows.append((f"Games Lost: {self.STATMAN.connections["gamesLost"]}", 0))
+                rows.append((f"Average Categories Completed: {round(util.get_average(self.STATMAN.connections["categoriesCompleted"]), 2)}", 0))
+            elif selected_name == "Strands":
+                rows.append((f"Games Played: {self.STATMAN.strands["gamesPlayed"]}", 0))
+                rows.append((f"Games Completed: {self.STATMAN.strands["gamesCompleted"]}", 0))
+                rows.append((f"Average Hints Used: {round(util.get_average(self.STATMAN.strands["hintsUsed"]), 2)}", 0))
+            elif selected_name == "Wordle":
+                rows.append((f"Games Played: {self.STATMAN.wordle["gamesPlayed"]}", 0))
+                rows.append((f"Games Won: {self.STATMAN.wordle["gamesWon"]}", 0))
+                rows.append((f"Games Lost: {self.STATMAN.wordle["gamesLost"]}", 0))
+                rows.append((f"Average # of Attempts: {round(util.get_average(self.STATMAN.wordle["attempts"]), 2)}", 0))
+
+
+            util.render_rows_to_center(rows, self.stdscr)
+
+            key = self.stdscr.getkey()
+
+            if key == "KEY_LEFT":
+                if selected > 0:
+                    selected -= 1
+            elif key == "KEY_RIGHT":
+                if selected < len(stat_options) - 1:
+                    selected += 1
+            else:
+                break
+
+            self.stdscr.refresh()
 
     def quit(self):
         self.running = False
@@ -155,7 +217,8 @@ class Game:
         
 
     def start(self, stdscr: curses.window):
-
+        
+        self.STATMAN.load_from_file()
 
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
@@ -190,3 +253,5 @@ def run():
         curses.wrapper(game.start)
     except KeyboardInterrupt:
         pass
+    finally:
+        game.STATMAN.save_to_file()

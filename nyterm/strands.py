@@ -31,6 +31,7 @@ class Strands:
     board_positions = {}
 
     hints = 0
+    hints_used = 0
     current_hint_progress = 0
 
     current_hint_coords = []
@@ -273,6 +274,7 @@ class Strands:
     def use_hint(self):
         if self.hints > 0:
             self.hints -= 1
+            self.hints_used += 1
         else:
             return
         candidate_words = self.theme_words.copy()
@@ -311,7 +313,7 @@ class Strands:
                 self.select_current()
                     
             elif key == "\n":
-                if self.did_win: return
+                if self.did_win: break
                 self.process_guess()
             
             elif key == "\t":
@@ -326,7 +328,7 @@ class Strands:
             elif key == "KEY_DOWN":
                 self.selected_y += 1
             elif key == "":
-                return
+                break
             elif key == "KEY_MOUSE":
                 mouse = curses.getmouse()
                 if mouse[4] == 2:
@@ -338,3 +340,5 @@ class Strands:
                     self.select_current()
                     
             stdscr.refresh()
+
+        return self.did_win, self.hints_used

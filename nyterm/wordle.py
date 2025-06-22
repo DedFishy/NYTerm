@@ -146,7 +146,7 @@ class Wordle:
                 if current_character_index <= 4: current_character_index += 1
             elif key == "\n":
                 if self.guesses > 5 or self.did_win:
-                    return
+                    break
                 if current_character_index > 4:
                     self.did_win = self.process_current_guess(stdscr)
                     if self.did_win == None:
@@ -163,6 +163,8 @@ class Wordle:
                     current_character_index -= 1
                     
             elif key == "":
-                return
+                break
 
             stdscr.refresh()
+        return self.did_win, self.guesses
+        
