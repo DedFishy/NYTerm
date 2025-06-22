@@ -4,6 +4,7 @@ from const import COLORS
 from connections import Connections
 from wordle import Wordle
 from strands import Strands
+from mini import Mini
 import util
 import datetime
 
@@ -26,6 +27,7 @@ class Game:
 
     def __init__(self):
         self.OPTIONS = {
+            "Mini": self.start_mini,
             "Strands": self.start_strands,
             "Connections": self.start_connections,
             "Wordle": self.start_wordle,
@@ -60,6 +62,10 @@ class Game:
             if strands.board == None:
                 return
             strands.start(self.stdscr)
+    
+    def start_mini(self):
+        mini = Mini()
+        mini.start(self.stdscr)
 
     def quit(self):
         self.running = False

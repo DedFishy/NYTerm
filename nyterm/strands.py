@@ -68,7 +68,7 @@ class Strands:
         self.already_guessed = []
         self.guessed_theme_words = []
         self.guessed_theme_words_coords = []
-        self.hints = 10
+        self.hints = 0
         self.current_hint_progress = 0
         self.load()
 
@@ -286,8 +286,6 @@ class Strands:
         else:
             self.target_hint_word = random.choice(candidate_words)
             self.current_hint_coords = self.theme_coords[self.target_hint_word]
-
-        util._log(self.show_current_hint_order)
 
     def start(self, stdscr: window):
         while True:
