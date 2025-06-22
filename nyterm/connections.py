@@ -28,6 +28,8 @@ class Connections:
 
     already_guessed = []
 
+    tile_positions = {}
+
     category_colors = {
         0: COLORS["YELLOW"],
         1: COLORS["GREEN"],
@@ -172,6 +174,7 @@ class Connections:
                     util.addstr(stdscr, y+0, x, word_tile[0], color_pair)
                     util.addstr(stdscr, y+1, x, word_tile[1], color_pair)
                     util.addstr(stdscr, y+2, x, word_tile[2], color_pair)
+                    self.tile_positions[x,y] = (current_tile_x, current_tile_y)
                     x+=self.TILE_WIDTH
                     current_tile_x+=1
                 current_tile_y+=1
@@ -193,6 +196,14 @@ class Connections:
                 return i
             i+=1
         return -1
+    
+    def select_current(self):
+        coord = (self.selected_x, self.selected_y)
+        if coord in self.selected_coords:
+            del self.selected_coords[self.selected_coords.index(coord)]
+        else:
+            if len(self.selected_coords) <= 3:
+                self.selected_coords.append(coord)
 
     def start(self, stdscr: window):
         while True:
@@ -201,12 +212,7 @@ class Connections:
 
             key = stdscr.getkey()
             if key == " ":
-                coord = (self.selected_x, self.selected_y)
-                if coord in self.selected_coords:
-                    del self.selected_coords[self.selected_coords.index(coord)]
-                else:
-                    if len(self.selected_coords) <= 3:
-                        self.selected_coords.append(coord)
+                self.select_current()
                     
             elif key == "\n":
                 if self.did_win or self.guesses_left <= 0: return
@@ -233,4 +239,15 @@ class Connections:
                 self.selected_y -= 1
             elif key == "KEY_DOWN":
                 self.selected_y += 1
+            elif key == "":
+                return
+            elif key == "KEY_MOUSE":
+                mouse = curses.getmouse()
+                if mouse[4] == 2:
+                    for position in self.tile_positions.keys():
+                        if position[0] <= mouse[1] and position[1] <= mouse[2]:
+                            tile_position = self.tile_positions[position]
+                            self.selected_x = tile_position[0]
+                            self.selected_y = tile_position[1]
+                    self.select_current()
             stdscr.refresh()

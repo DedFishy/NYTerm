@@ -6,6 +6,7 @@ from strands import Strands
 from mini import Mini
 import util
 import datetime
+import os
 
 TODAY = datetime.datetime.now()
 
@@ -37,8 +38,23 @@ class Game:
         self.KEYS = {
             "KEY_DOWN": self.key_down,
             "KEY_UP": self.key_up,
-            "\n": lambda: self.OPTIONS[list(self.OPTIONS.keys())[self.selected]]()
+            "\n": lambda: self.OPTIONS[list(self.OPTIONS.keys())[self.selected]](),
+            "KEY_MOUSE": self.click_option
         }
+
+        self.row_positions = {}
+
+    def click_option(self):
+        mouse_event = curses.getmouse()
+        if mouse_event[4] != 2: return
+        mouse_position = (mouse_event[1], mouse_event[2])
+        func = None
+        for candidate in self.row_positions.keys():
+            if self.row_positions[candidate] == mouse_position[1]:
+                func = self.OPTIONS[candidate]
+                break
+        if func: func()
+        util._log(self.row_positions, func, candidate, mouse_event)
 
     def start_wordle(self):
         do_start = self.select_ymd("Wordle")
@@ -92,13 +108,13 @@ class Game:
     def render(self):
         self.stdscr.clear()
         rows_to_render = [
-            ("████████████", 0),
-            [("██    ", 0), ("███", COLORS["YELLOW"]), ("█", COLORS["BLUE"]), ("██", 0)],
-            [("██", 0), ("█", COLORS["BLUE"]), ("███", COLORS["GREEN"]), (" >  ██", 0)],
-            [("██ ", 0), ("███", COLORS["YELLOW"]), ("  ▔ ██", 0)],
-            ("████████████", 0),
+            ("▄▄▄▄▄▄▄▄▄▄", 0),
+            [(" █    ", 0), ("███", COLORS["YELLOW"]), ("█", COLORS["BLUE"]), ("█", 0)],
+            [(" █", 0), ("█", COLORS["BLUE"]), ("███", COLORS["GREEN"]), (" >  █", 0)],
+            [(" █ ", 0), ("███", COLORS["YELLOW"]), ("  ▔ █", 0)],
+            ("▀▀▀▀▀▀▀▀▀▀", 0),
             ("NYTerminal", COLORS["TITLE"]), 
-            ("The NYT games implemented in the terminal.", COLORS["SUBTITLE"]), 
+            ("The (good) NYT games implemented in the terminal.", COLORS["SUBTITLE"]), 
             ("By Boyne Gregg", COLORS["SUBTITLE"]),
             ("[UP/DOWN/LEFT/RIGHT] Move             ", COLORS["PURPLE"]),
             ("               [ESC] Menu             ", COLORS["PURPLE"]),
@@ -109,14 +125,15 @@ class Game:
             ]
         i = 0
         for option in self.OPTIONS.keys():
-            if i == self.selected: rows_to_render.append((option, COLORS["SELECTED_OPTION"]))
-            else: rows_to_render.append((option, COLORS["UNSELECTED_OPTION"]))
+            if i == self.selected: rows_to_render.append((option, COLORS["SELECTED_OPTION"], option))
+            else: rows_to_render.append((option, COLORS["UNSELECTED_OPTION"], option))
             i += 1
 
-        util.render_rows_to_center(rows_to_render, self.stdscr)
+        self.row_positions = util.render_rows_to_center(rows_to_render, self.stdscr)
         
 
     def start(self, stdscr: curses.window):
+
 
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
@@ -124,8 +141,13 @@ class Game:
         curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_WHITE)
         curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK),
-        curses.init_pair(8, curses.COLOR_RED, curses.COLOR_WHITE),
+        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(8, curses.COLOR_RED, curses.COLOR_WHITE)
+
+        
+
+        curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+        curses.mouseinterval(0)
 
         curses.curs_set(False)
         
@@ -135,11 +157,11 @@ class Game:
             key = self.stdscr.getkey()
             if key in self.KEYS.keys():
                 self.KEYS[key]()
-            else:
-                self.OPTIONS[key] = lambda: None
         
 
 def run():
+    os.environ.setdefault('ESCDELAY', '0')
+
     game = Game()
     
     try:

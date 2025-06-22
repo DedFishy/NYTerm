@@ -157,6 +157,7 @@ class Wordle:
                     self.letter_grid[self.guesses][current_character_index-1] = (" ", 0)
                     current_character_index -= 1
                     
-                
+            elif key == "":
+                return
 
             stdscr.refresh()

@@ -1,1 +1,1 @@
-24| |S
+{'Mini': 18, 'Strands': 19, 'Connections': 20, 'Wordle': 21, 'Quit': 22}|<bound method Game.quit of <game.Game object at 0x7f92dd9b3e00>>|Quit|(0, 106, 22, 0, 2)

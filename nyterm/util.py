@@ -37,6 +37,8 @@ def render_rows_to_center(rows: list[tuple[str,int]|dict[str,int]], stdscr: curs
     width = max((len("".join(list(row.keys()))) if type(row) == dict else len(row[0]) for row in rows))
     y_coord, x_coord = get_starting_dimensions_yx(width, len(rows), stdscr.getmaxyx())
 
+    row_dimensions = {}
+
     for row in rows:
         if type(row) == list:
             current_x = x_coord
@@ -47,7 +49,10 @@ def render_rows_to_center(rows: list[tuple[str,int]|dict[str,int]], stdscr: curs
                 current_x += len(section[0])
         else:
             addstr(stdscr, y_coord, x_coord, row[0].center(width) if center_all else row[0], curses.color_pair(row[1]))
+            if len(row) > 2:
+                row_dimensions[row[2]] = y_coord
         y_coord += 1
+    return row_dimensions
 
 def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default, title):
     
@@ -56,9 +61,11 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
     still_selecting = True
     while still_selecting:
         stdscr.clear()
+        option_positions = {}
         row = []
         row.append((" ", 0))
         for input in inputs_keys:
+            option_positions[input] = len("".join(x[0] for x in row))
             row.append((f"{input}" + (f": {inputs[input]}" if type(inputs[input]) == int else ""), COLORS["SELECTED_OPTION" if input == inputs_keys[selected] else "UNSELECTED_OPTION"]))
             row.append((" | ", 0))
         render_rows_to_center([
@@ -78,6 +85,27 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
         elif key == "KEY_DOWN":
             if type(inputs[inputs_keys[selected]]) == int:
                 inputs[inputs_keys[selected]] -= 1
+        elif key == "KEY_MOUSE":
+            mouse = curses.getmouse()
+            x_offset = mouse[1] - (int(stdscr.getmaxyx()[1]/2 - len("".join(x[0] for x in row))/2))
+
+            if mouse[4] == 2:
+
+                clicked = None
+                for option in option_positions.keys():
+                    if option_positions[option] < x_offset:
+                        clicked = option
+                    else:
+                        break
+                if clicked:
+                    inputs[inputs_keys[selected]]
+                    _log(mouse, x_offset, clicked, option_positions)
+                    old_selected = selected
+                    selected = list(inputs.keys()).index(clicked)
+                    if selected == old_selected and type(inputs[inputs_keys[selected]]) == bool:
+                        return inputs, inputs[inputs_keys[selected]]
+            
+
         elif key == "\n":
             if type(inputs[inputs_keys[selected]]) != int:
                 return inputs, inputs[inputs_keys[selected]]

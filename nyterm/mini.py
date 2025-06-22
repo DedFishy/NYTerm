@@ -1,4 +1,5 @@
 import curses
+import curses.ascii
 import math
 import util
 from curses import window
@@ -27,6 +28,8 @@ class Mini:
     selected_cell = -1
 
     is_direction_across = True
+
+    cell_coords = {}
 
     def __init__(self):
         self.did_win = False
@@ -99,6 +102,7 @@ class Mini:
             util.addstr(stdscr, y+0, x, letter_tile[0], color_pair)
             util.addstr(stdscr, y+1, x, letter_tile[1], color_pair)
             util.addstr(stdscr, y+2, x, letter_tile[2], color_pair)
+            self.cell_coords[i] = (x,y)
             i += 1
         
         message = None
@@ -111,7 +115,6 @@ class Mini:
     
     def start(self, stdscr: window):
         self.start_time = time.time()
-        current_character_index = 0
         while True:
             stdscr.clear()
             self.draw_letter_grid(stdscr)
@@ -172,6 +175,21 @@ class Mini:
                         self.selected_cell = new_pos
                 else:
                     self.is_direction_across = True   
+            
+            elif key == "KEY_MOUSE":
+                mouse = curses.getmouse()
+                if mouse[4] == 2:
+                    clicked_cell_index = -1
+                    for cell in self.cell_coords.keys():
+                        coord = self.cell_coords[cell]
+                        if coord[0] <= mouse[1] and coord[1] <= mouse[2]:
+                            clicked_cell_index = cell
+                    if clicked_cell_index != -1 and clicked_cell_index in self.cell_answers.keys():
+                        self.selected_cell = clicked_cell_index
+                        util._log(mouse, self.cell_coords)
+            
+            elif key == "":
+                return
                 
 
             stdscr.refresh()

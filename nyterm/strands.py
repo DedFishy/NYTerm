@@ -28,6 +28,8 @@ class Strands:
     guessed_theme_words = []
     guessed_theme_words_coords = []
 
+    board_positions = {}
+
     hints = 0
     current_hint_progress = 0
 
@@ -221,6 +223,8 @@ class Strands:
                 util.addstr(stdscr, y+0, x, word_tile[0], color_pair)
                 util.addstr(stdscr, y+1, x, word_tile[1], color_pair)
                 util.addstr(stdscr, y+2, x, word_tile[2], color_pair)
+
+                self.board_positions[x,y] = (current_letter_x, current_letter_y)
                 x+=self.LETTER_WIDTH
                 current_letter_x+=1
             current_letter_y+=1
@@ -283,6 +287,19 @@ class Strands:
         else:
             self.target_hint_word = random.choice(candidate_words)
             self.current_hint_coords = self.theme_coords[self.target_hint_word]
+    
+    def select_current(self):
+        coord = (self.selected_x, self.selected_y)
+        if coord in self.selected_coords:
+            if self.selected_coords[-1] == coord:
+                self.process_guess()
+            else:
+                self.selected_coords = []
+        else:
+            if len(self.selected_coords) <= 0 or (abs(coord[0]-self.selected_coords[-1][0]) <= 1 and abs(coord[1]-self.selected_coords[-1][1]) <= 1):
+                self.selected_coords.append(coord)
+            else:
+                self.selected_coords = []
 
     def start(self, stdscr: window):
         while True:
@@ -291,17 +308,7 @@ class Strands:
 
             key = stdscr.getkey()
             if key == " ":
-                coord = (self.selected_x, self.selected_y)
-                if coord in self.selected_coords:
-                    if self.selected_coords[-1] == coord:
-                        del self.selected_coords[self.selected_coords.index(coord)]
-                    else:
-                        self.selected_coords = []
-                else:
-                    if len(self.selected_coords) <= 0 or (abs(coord[0]-self.selected_coords[-1][0]) <= 1 and abs(coord[1]-self.selected_coords[-1][1]) <= 1):
-                        self.selected_coords.append(coord)
-                    else:
-                        self.selected_coords = []
+                self.select_current()
                     
             elif key == "\n":
                 if self.did_win: return
@@ -318,4 +325,16 @@ class Strands:
                 self.selected_y -= 1
             elif key == "KEY_DOWN":
                 self.selected_y += 1
+            elif key == "":
+                return
+            elif key == "KEY_MOUSE":
+                mouse = curses.getmouse()
+                if mouse[4] == 2:
+                    for position in self.board_positions:
+                        if position[0] <= mouse[1] and position[1] <= mouse[2]:
+                            board_position = self.board_positions[position]
+                            self.selected_x = board_position[0]
+                            self.selected_y = board_position[1]
+                    self.select_current()
+                    
             stdscr.refresh()
