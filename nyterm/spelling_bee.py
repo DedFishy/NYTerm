@@ -122,13 +122,18 @@ class SpellingBee:
                 
                 if self.did_win: return
                 
-                if self.is_guess_in_word_list() and not self.typed_word in self.guessed:
+                if self.is_guess_in_word_list():
+                    if not self.typed_word in self.guessed:
                     
-                    self.progress += self.get_score_for_word(self.typed_word)
-                    self.guessed.append(self.typed_word)
+                        self.progress += self.get_score_for_word(self.typed_word)
+                        self.guessed.append(self.typed_word)
 
-                    if len(self.guessed) == len(self.allowed_words):
-                        self.did_win = True
+                        if len(self.guessed) == len(self.allowed_words):
+                            self.did_win = True
+                    else:
+                        util.show_dialog(stdscr, "You have already used that.")
+                else:
+                    util.show_dialog(stdscr, "That is not a valid word.")
                 
                 self.typed_word = ""
 

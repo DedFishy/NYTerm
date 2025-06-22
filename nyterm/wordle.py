@@ -83,7 +83,7 @@ class Wordle:
         if message == None:
             alphabet_x = int(stdscr.getmaxyx()[1]/2)-(26/2)
             for letter in self.letter_statuses.keys():
-                util.addstr(stdscr, y, int(alphabet_x), letter, curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]))
+                util.addstr(stdscr, y, int(alphabet_x), letter.upper(), curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]) | curses.A_BOLD)
                 alphabet_x += 1
         else:
             util.addstr(stdscr, y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
@@ -92,12 +92,13 @@ class Wordle:
         current_guess = "".join([x[0] for x in self.letter_grid[self.guesses]])
         index = bisect_left(self.allowed_words, current_guess)
         if len(self.allowed_words) > 0:
-            return self.allowed_words[index] == self.typed_word
+            return self.allowed_words[index] == current_guess
         return False
 
-    def process_current_guess(self):
+    def process_current_guess(self, stdscr):
         current_guess = [x[0] for x in self.letter_grid[self.guesses]]
         if not self.is_guess_in_word_list():
+            util.show_dialog(stdscr, "That is not a valid word.")
             return None
         solution = list(self.solution)
         colors = [0,0,0,0,0]
@@ -147,10 +148,12 @@ class Wordle:
                 if self.guesses > 5 or self.did_win:
                     return
                 if current_character_index > 4:
-                    self.did_win = self.process_current_guess()
+                    self.did_win = self.process_current_guess(stdscr)
                     if self.did_win == None:
                         self.letter_grid[self.guesses] = [(" ", 0) for _ in range(5)]
                     current_character_index = 0
+                else:
+                    util.show_dialog(stdscr, "You need to fill the row with letters.")
 
             elif key == "KEY_BACKSPACE":
 

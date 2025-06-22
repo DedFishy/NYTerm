@@ -161,6 +161,12 @@ def prompt_screen_resize(stdscr: curses.window):
     render_rows_to_center([("Your terminal is too small!", 0), ("Resize it or lower your text size", 0), ("([CTRL+C] to quit)", 0)], stdscr)
     stdscr.refresh()
 
+def show_dialog(stdscr: curses.window, text):
+    stdscr.clear()
+    render_rows_to_center([(text, 0), ("OKAY", COLORS["SELECTED_OPTION"])], stdscr)
+    stdscr.refresh()
+    stdscr.getkey()
+
 def addstr(stdscr: curses.window, y_coord=0, x_coord=0, text="", attr=0):
     try:
         stdscr.addstr(y_coord, x_coord, text, attr)

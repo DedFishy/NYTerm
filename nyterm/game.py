@@ -80,20 +80,23 @@ class Game:
         if do_start:
             wordle = Wordle(self.selected_year, self.selected_month, self.selected_day)
             if wordle.solution == None:
+                util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
             wordle.start(self.stdscr)
     def start_connections(self):
         do_start = self.select_ymd("Connections")
         if do_start:
             connections = Connections(self.selected_year, self.selected_month, self.selected_day)
-            if connections.solution == None:
+            if connections.solution == None or connections.solution == []:
+                util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
             connections.start(self.stdscr)
     def start_strands(self):
         do_start = self.select_ymd("Strands")
         if do_start:
             strands = Strands(self.selected_year, self.selected_month, self.selected_day)
-            if strands.board == None:
+            if strands.board == None or strands.board == []:
+                util.show_dialog(self.stdscr, "Couldn't load that puzzle.")
                 return
             strands.start(self.stdscr)
     

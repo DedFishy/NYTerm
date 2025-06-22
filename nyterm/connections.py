@@ -218,8 +218,11 @@ class Connections:
                 if self.did_win or self.guesses_left <= 0: return
                 if len(self.selected_coords) >= 3:
                     self.selected_coords = []
-                    if self.selected_items in self.already_guessed or len(self.selected_items) < 4:
+                    if self.selected_items in self.already_guessed:
                         self.selected_items = []
+                        util.show_dialog(stdscr, "You have already tried that.")
+                    elif len(self.selected_items) < 4:
+                        self.selected_item = []
                     else:
                         self.already_guessed.append(self.selected_items)
                         index = self.process_guess()
