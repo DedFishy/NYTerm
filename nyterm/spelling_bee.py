@@ -50,38 +50,52 @@ class SpellingBee:
             self.allowed_words = self.game_data["answers"]
             self.pangrams = self.game_data["pangrams"]
 
+            self.progress = 0
+
             for word in self.allowed_words:
                 self.max_points += self.get_score_for_word(word)
 
             self.allowed_words.sort() # THEY PUT THE PANGRAMS IN THE WRONG SPOT!!!!
     
     def get_rank_for_percentage(self, percentage):
-        found_rank = "?"
+        found_rank = "Beginner"
         for rank in self.ranks.keys():
-            if rank < percentage:
+            if rank <= percentage:
                 found_rank = self.ranks[rank]
             else:
                 break
         return found_rank
     
     def draw_letter_hexagon(self, stdscr: window):
-        start_coord_yx = util.get_starting_dimensions_yx(7, 5, stdscr.getmaxyx())
-        a,b,c,d,e,f,g = self.letters
-        rows = [
-            
-            (f"   {g}   ", 0),
-            (f"{b}     {c}", 0),
-            (f"   {a}   ", 0),
-            (f"{d}     {f}", 0),
-            (f"   {e}   ", 0)
-        ]
+        
+        letters = [x.upper() for x in self.letters]
+        
+        a,b,c,d,e,f,g = letters
+        
+        display = rf"""
+----╔═══╗
+╔═══╣ b ╠═══╗
+║ g ╠═══╣ c ║
+╠═══╣ a ╠═══╣
+║ f ╠═══╣ d ║
+╚═══╣ e ╠═══╝
+----╚═══╝
+"""
+        
+        display = display.replace("a", a).replace("b", b).replace("c", c).replace("d", d).replace("e", e).replace("f", f).replace("g", g)
+        rows = [(self.typed_word.upper() if self.typed_word != "" else "Start typing...", 0)]
+        rows.extend((x.replace("-", ""), COLORS["YELLOW"]) for x in display.splitlines())
         util.render_rows_to_center(rows, stdscr)
+
+        width = len(max(x[0] for x in rows))
+        height = len(rows) + 1
+        start_coord_yx = util.get_starting_dimensions_yx(width, height, stdscr.getmaxyx())
+
+        
     
-        util.addstr(stdscr, start_coord_yx[0] + 5, start_coord_yx[1], f"Score: {self.progress}".center(7))
-        util.addstr(stdscr, start_coord_yx[0] + 6, start_coord_yx[1], f"Word: {self.typed_word}")
-        util.addstr(stdscr, start_coord_yx[0] + 7, start_coord_yx[1], f"Rank: {self.get_rank_for_percentage(self.progress/self.max_points)}")
+        util.addstr(stdscr, start_coord_yx[0] + height + 1, start_coord_yx[1], f"{self.get_rank_for_percentage(self.progress/self.max_points)} - {self.progress}".center(width))
         if self.did_win:
-            util.addstr(stdscr, start_coord_yx[0] + 8, start_coord_yx[1], f"You found every word!".center(7))
+            util.addstr(stdscr, start_coord_yx[0] + height + 2, start_coord_yx[1], f"Found them all!".center(width))
 
     def is_guess_in_word_list(self):
         index = bisect_left(self.allowed_words, self.typed_word)
