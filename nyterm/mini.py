@@ -1,12 +1,8 @@
 import curses
 import math
 import util
-from datetime import datetime
 from curses import window
 from const import COLORS
-from importlib import resources as impresources
-import word_lists
-from bisect import bisect_left
 import time
 
 
@@ -100,9 +96,9 @@ class Mini:
                 color = 0
             color_pair = curses.color_pair(color)
 
-            stdscr.addstr(y+0, x, letter_tile[0], color_pair)
-            stdscr.addstr(y+1, x, letter_tile[1], color_pair)
-            stdscr.addstr(y+2, x, letter_tile[2], color_pair)
+            util.addstr(stdscr, y+0, x, letter_tile[0], color_pair)
+            util.addstr(stdscr, y+1, x, letter_tile[1], color_pair)
+            util.addstr(stdscr, y+2, x, letter_tile[2], color_pair)
             i += 1
         
         message = None
@@ -110,7 +106,7 @@ class Mini:
             message = f"You solved the Mini in {int(time.time()-self.start_time)} seconds!"
         else:
             message = f"{'Across' if self.is_direction_across else 'Down'} " + (self.clues_across if self.is_direction_across else self.clues_down)[self.selected_cell]
-        stdscr.addstr(start_coord_yx[0] + self.width*self.LETTER_HEIGHT, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
+        util.addstr(stdscr, start_coord_yx[0] + self.width*self.LETTER_HEIGHT, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
 
     
     def start(self, stdscr: window):

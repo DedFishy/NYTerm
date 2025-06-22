@@ -1,0 +1,3 @@
+# NYTerminal
+## Play the (good) NYT games within your terminal!
+I mean, I would explain it more, but it feels pretty simple to me...

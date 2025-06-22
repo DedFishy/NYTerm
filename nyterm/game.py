@@ -1,5 +1,4 @@
 import curses
-import time
 from const import COLORS
 from connections import Connections
 from wordle import Wordle
@@ -100,7 +99,13 @@ class Game:
             ("████████████", 0),
             ("NYTerminal", COLORS["TITLE"]), 
             ("The NYT games implemented in the terminal.", COLORS["SUBTITLE"]), 
-            ("By Boyne Gregg", COLORS["SUBTITLE"])
+            ("By Boyne Gregg", COLORS["SUBTITLE"]),
+            ("[UP/DOWN/LEFT/RIGHT] Move             ", COLORS["PURPLE"]),
+            ("               [ESC] Menu             ", COLORS["PURPLE"]),
+            ("               [TAB] Hint             ", COLORS["PURPLE"]),
+            ("             [SPACE] Select           ", COLORS["PURPLE"]),
+            ("             [ENTER] Submit           ", COLORS["PURPLE"]),
+            ("            [CTRL+C] Exit             ", COLORS["PURPLE"]),
             ]
         i = 0
         for option in self.OPTIONS.keys():

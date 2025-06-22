@@ -4,9 +4,6 @@ import util
 from datetime import datetime
 from curses import window
 from const import COLORS
-from importlib import resources as impresources
-import word_lists
-from bisect import bisect_left
 
 class Connections:
     BASE_URL = "https://www.nytimes.com/svc/connections/v2/"
@@ -149,9 +146,9 @@ class Connections:
                 words = row[1]
                 color_pair = curses.color_pair(self.category_colors[row[2]])
                 tile = self.construct_category_tile(title, words)
-                stdscr.addstr(y+0, x, tile[0], color_pair)
-                stdscr.addstr(y+1, x, tile[1], color_pair)
-                stdscr.addstr(y+2, x, tile[2], color_pair)
+                util.addstr(stdscr, y+0, x, tile[0], color_pair)
+                util.addstr(stdscr, y+1, x, tile[1], color_pair)
+                util.addstr(stdscr, y+2, x, tile[2], color_pair)
             else:
                 current_tile_x = 0
                 for word in row:
@@ -172,9 +169,9 @@ class Connections:
                     else:
                         color_pair = curses.color_pair(COLORS["UNSELECTED_OPTION"])
 
-                    stdscr.addstr(y+0, x, word_tile[0], color_pair)
-                    stdscr.addstr(y+1, x, word_tile[1], color_pair)
-                    stdscr.addstr(y+2, x, word_tile[2], color_pair)
+                    util.addstr(stdscr, y+0, x, word_tile[0], color_pair)
+                    util.addstr(stdscr, y+1, x, word_tile[1], color_pair)
+                    util.addstr(stdscr, y+2, x, word_tile[2], color_pair)
                     x+=self.TILE_WIDTH
                     current_tile_x+=1
                 current_tile_y+=1
@@ -182,7 +179,7 @@ class Connections:
         
         
 
-        stdscr.addstr(y, start_coord_yx[1], message.center(self.TILE_WIDTH*4))
+        util.addstr(stdscr, y, start_coord_yx[1], message.center(self.TILE_WIDTH*4))
     
     def process_guess(self):
         i = 0

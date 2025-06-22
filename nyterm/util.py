@@ -43,10 +43,10 @@ def render_rows_to_center(rows: list[tuple[str,int]|dict[str,int]], stdscr: curs
             row_width = len("".join(x[0] for x in row))
             current_x += int(width/2 - row_width/2)
             for section in row:
-                stdscr.addstr(y_coord, current_x, section[0], curses.color_pair(section[1]))
+                addstr(stdscr, y_coord, current_x, section[0], curses.color_pair(section[1]))
                 current_x += len(section[0])
         else:
-            stdscr.addstr(y_coord, x_coord, row[0].center(width) if center_all else row[0], curses.color_pair(row[1]))
+            addstr(stdscr, y_coord, x_coord, row[0].center(width) if center_all else row[0], curses.color_pair(row[1]))
         y_coord += 1
 
 def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default, title):
@@ -82,7 +82,16 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
             if type(inputs[inputs_keys[selected]]) != int:
                 return inputs, inputs[inputs_keys[selected]]
             
-            
+def prompt_screen_resize(stdscr: curses.window):
+    stdscr.clear()
+    render_rows_to_center([("Your terminal is too small!", 0), ("Resize it or lower your text size", 0), ("([CTRL+C] to quit)", 0)], stdscr)
+    stdscr.refresh()
+
+def addstr(stdscr: curses.window, y_coord=0, x_coord=0, text="", attr=0):
+    try:
+        stdscr.addstr(y_coord, x_coord, text, attr)
+    except curses.error:
+        prompt_screen_resize(stdscr)
             
 def _log(*string):
     conv_string = []

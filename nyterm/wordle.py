@@ -69,9 +69,9 @@ class Wordle:
 
                 color_pair = curses.color_pair(self.letter_status_codes[color if color != -1 else 0])
 
-                stdscr.addstr(y+0, x, letter_tile[0], color_pair)
-                stdscr.addstr(y+1, x, letter_tile[1], color_pair)
-                stdscr.addstr(y+2, x, letter_tile[2], color_pair)
+                util.addstr(stdscr, y+0, x, letter_tile[0], color_pair)
+                util.addstr(stdscr, y+1, x, letter_tile[1], color_pair)
+                util.addstr(stdscr, y+2, x, letter_tile[2], color_pair)
                 x+=self.LETTER_WIDTH
             y+=self.LETTER_HEIGHT
         
@@ -83,10 +83,10 @@ class Wordle:
         if message == None:
             alphabet_x = int(stdscr.getmaxyx()[1]/2)-(26/2)
             for letter in self.letter_statuses.keys():
-                stdscr.addstr(y, int(alphabet_x), letter, curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]))
+                util.addstr(stdscr, y, int(alphabet_x), letter, curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]))
                 alphabet_x += 1
         else:
-            stdscr.addstr(y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
+            util.addstr(stdscr, y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
 
     def is_guess_in_word_list(self):
         current_guess = "".join([x[0] for x in self.letter_grid[self.guesses]])

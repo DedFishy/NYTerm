@@ -1,12 +1,9 @@
 import curses
-import math
 import random
 import util
 from datetime import datetime
 from curses import window
 from const import COLORS, STRANDS_LETTER_DIRECTIONS
-from importlib import resources as impresources
-import word_lists
 from bisect import bisect_left
 
 class Strands:
@@ -221,9 +218,9 @@ class Strands:
                 else:
                     color_pair = curses.color_pair(COLORS["UNSELECTED_OPTION"])
 
-                stdscr.addstr(y+0, x, word_tile[0], color_pair)
-                stdscr.addstr(y+1, x, word_tile[1], color_pair)
-                stdscr.addstr(y+2, x, word_tile[2], color_pair)
+                util.addstr(stdscr, y+0, x, word_tile[0], color_pair)
+                util.addstr(stdscr, y+1, x, word_tile[1], color_pair)
+                util.addstr(stdscr, y+2, x, word_tile[2], color_pair)
                 x+=self.LETTER_WIDTH
                 current_letter_x+=1
             current_letter_y+=1
@@ -231,7 +228,7 @@ class Strands:
         
         
 
-        stdscr.addstr(y, start_coord_yx[1], message.center(self.LETTER_WIDTH*len(self.board[0])))
+        util.addstr(stdscr, y, start_coord_yx[1], message.center(self.LETTER_WIDTH*len(self.board[0])))
     
     def process_guess(self):
         formed_word = ""

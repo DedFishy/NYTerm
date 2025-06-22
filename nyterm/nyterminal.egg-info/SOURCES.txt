@@ -1,0 +1,9 @@
+LICENSE
+README.md
+setup.py
+nyterm/nyterminal.egg-info/PKG-INFO
+nyterm/nyterminal.egg-info/SOURCES.txt
+nyterm/nyterminal.egg-info/dependency_links.txt
+nyterm/nyterminal.egg-info/entry_points.txt
+nyterm/nyterminal.egg-info/requires.txt
+nyterm/nyterminal.egg-info/top_level.txt
