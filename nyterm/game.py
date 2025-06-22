@@ -4,6 +4,7 @@ from connections import Connections
 from wordle import Wordle
 from strands import Strands
 from mini import Mini
+from spelling_bee import SpellingBee
 import util
 import datetime
 import os
@@ -27,6 +28,7 @@ class Game:
 
     def __init__(self):
         self.OPTIONS = {
+            "Spelling Bee": self.start_bee,
             "Mini": self.start_mini,
             "Strands": self.start_strands,
             "Connections": self.start_connections,
@@ -55,6 +57,10 @@ class Game:
                 break
         if func: func()
         util._log(self.row_positions, func, candidate, mouse_event)
+
+    def start_bee(self):
+        bee = SpellingBee()
+        bee.start(self.stdscr)
 
     def start_wordle(self):
         do_start = self.select_ymd("Wordle")
