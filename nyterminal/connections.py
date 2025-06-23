@@ -1,9 +1,9 @@
 import curses
 import math
-import util
+import nyterminal.util as util
 from datetime import datetime
 from curses import window
-from const import COLORS
+from nyterminal.const import COLORS
 
 class Connections:
     BASE_URL = "https://www.nytimes.com/svc/connections/v2/"

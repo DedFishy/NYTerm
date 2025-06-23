@@ -1,6 +1,6 @@
 import json
 
-import util
+import nyterminal.util as util
 class StatManager:
 
     FILENAME = "nytermstats"

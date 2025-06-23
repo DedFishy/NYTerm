@@ -88,7 +88,7 @@ setup(
     keywords="NYT, New, York, Times, games, Wordle, Mini, Strands, Connections",  # Optional
     # When your source code is in a subdirectory under the project root, e.g.
     # `src/`, it is necessary to specify the `package_dir` argument.
-    package_dir={"": "nyterm"},  # Optional
+    package_dir={"": "nyterminal"},  # Optional
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
@@ -98,7 +98,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(where="nyterm"),  # Required
+    packages=find_packages(where="nyterminal"),  # Required
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match. See
@@ -128,7 +128,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
         "console_scripts": [
-            "nyterminal=game:run",
+            "nyterminal=nyterminal.game:run",
         ],
     },
     # List additional URLs that are relevant to your project as a dict.

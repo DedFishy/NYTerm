@@ -1,6 +1,6 @@
 import curses
 import requests
-from const import COLORS
+from nyterminal.const import COLORS
 
 def format_month(month):
     if len(month) < 2:

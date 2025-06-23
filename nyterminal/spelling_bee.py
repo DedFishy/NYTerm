@@ -1,12 +1,11 @@
 import curses
-import util
+import nyterminal.util as util
 from datetime import datetime
 from curses import window
-from const import COLORS
+from nyterminal.const import COLORS
 from importlib import resources as impresources
-import word_lists
 from bisect import bisect_left
-from spelling_bee_loader import load_spelling_bee
+from nyterminal.spelling_bee_loader import load_spelling_bee
 
 class SpellingBee:
 

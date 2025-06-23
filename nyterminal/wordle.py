@@ -1,10 +1,10 @@
 import curses
-import util
+import nyterminal.util as util
 from datetime import datetime
 from curses import window
-from const import COLORS
+from nyterminal.const import COLORS
 from importlib import resources as impresources
-import word_lists
+import nyterminal.word_lists as word_lists
 from bisect import bisect_left
 
 class Wordle:

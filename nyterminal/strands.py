@@ -1,9 +1,9 @@
 import curses
 import random
-import util
+import nyterminal.util as util
 from datetime import datetime
 from curses import window
-from const import COLORS, STRANDS_LETTER_DIRECTIONS
+from nyterminal.const import COLORS, STRANDS_LETTER_DIRECTIONS
 from bisect import bisect_left
 
 class Strands:

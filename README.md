@@ -8,7 +8,7 @@ This program takes advantage of the fact that the free NYT games are publicly av
 Simply install the package with `pip`: `python3 -m pip install nyterminal`
 
 ### Running
-Run the package (NAMED DIFFERENTLY) with `python3 -m nyterm`
+Run the package (NAMED DIFFERENTLY) with `python3 -m nyterminal` or `nyterminal` if your default Python environment is the one NYTerminal is installed to.
 
 ### Interface
 Using Curses, the terminal window is turned into a highly interactive UI. Most elements can be clicked, or you can use your arrow keys to navigate menus. While the controls are intuitive, here's a handy reference:

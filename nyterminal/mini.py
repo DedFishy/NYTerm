@@ -1,9 +1,9 @@
 import curses
 import curses.ascii
 import math
-import util
+import nyterminal.util as util
 from curses import window
-from const import COLORS
+from nyterminal.const import COLORS
 import time
 
 

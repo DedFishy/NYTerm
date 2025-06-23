@@ -1,0 +1,2 @@
+[console_scripts]
+nyterminal = nyterminal.game:run

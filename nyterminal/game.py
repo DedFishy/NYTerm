@@ -1,16 +1,16 @@
 import curses
 import math
-from const import COLORS
-from connections import Connections
-from wordle import Wordle
-from strands import Strands
-from mini import Mini
-from spelling_bee import SpellingBee
-from spelling_bee_loader import load_spelling_bee, loader
-import util
+from nyterminal.const import COLORS
+from nyterminal.connections import Connections
+from nyterminal.wordle import Wordle
+from nyterminal.strands import Strands
+from nyterminal.mini import Mini
+from nyterminal.spelling_bee import SpellingBee
+from nyterminal.spelling_bee_loader import load_spelling_bee, loader
+import nyterminal.util as util
 import datetime
 import os
-from statman import StatManager
+from nyterminal.statman import StatManager
 
 TODAY = datetime.datetime.now()
 
