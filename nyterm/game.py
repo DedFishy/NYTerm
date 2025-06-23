@@ -161,7 +161,7 @@ class Game:
             elif key == "KEY_RIGHT":
                 if selected < len(stat_options) - 1:
                     selected += 1
-            else:
+            elif key == "\n" or key == "":
                 break
 
             self.stdscr.refresh()

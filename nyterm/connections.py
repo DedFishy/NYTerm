@@ -30,6 +30,8 @@ class Connections:
 
     tile_positions = {}
 
+    actually_solved = -1
+
     category_colors = {
         0: COLORS["YELLOW"],
         1: COLORS["GREEN"],
@@ -47,6 +49,7 @@ class Connections:
         self.selected_y = 0
         self.selected_coords = []
         self.solved = []
+        self.actually_solved = -1
         self.already_guessed = []
         self.load()
 
@@ -84,6 +87,7 @@ class Connections:
     def construct_game_matrix(self):
         # If we just lost, reveal all answers
         if self.guesses_left <= 0:
+            self.actually_solved = len(self.solved)
             for category in range(4):
                 if category not in self.solved:
                     self.solved.append(category)
@@ -232,6 +236,7 @@ class Connections:
                             self.solved.append(index)
                             if len(self.solved) >= 4:
                                 self.did_win = True
+                                self.actually_solved = 4
                         
             
             elif key == "KEY_LEFT":
@@ -254,4 +259,4 @@ class Connections:
                             self.selected_y = tile_position[1]
                     self.select_current()
             stdscr.refresh()
-        return self.did_win, len(self.solved)
+        return self.did_win, self.actually_solved if self.actually_solved != -1 else len(self.solved)
