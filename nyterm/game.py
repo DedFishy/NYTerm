@@ -144,6 +144,7 @@ class Game:
                 rows.append((f"Games Played: {self.STATMAN.strands["gamesPlayed"]}", 0))
                 rows.append((f"Games Completed: {self.STATMAN.strands["gamesCompleted"]}", 0))
                 rows.append((f"Average Hints Used: {round(util.get_average(self.STATMAN.strands["hintsUsed"]), 2)}", 0))
+                util._log(self.STATMAN.strands["hintsUsed"], util.get_average(self.STATMAN.strands["hintsUsed"]))
             elif selected_name == "Wordle":
                 rows.append((f"Games Played: {self.STATMAN.wordle["gamesPlayed"]}", 0))
                 rows.append((f"Games Won: {self.STATMAN.wordle["gamesWon"]}", 0))

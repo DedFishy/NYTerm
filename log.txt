@@ -1,1 +1,1 @@
-{'Spelling Bee': 14, 'Mini': 15, 'Strands': 16, 'Connections': 17, 'Wordle': 18, 'Stats': 19, 'Quit': 20}|<bound method Game.show_stats of <game.Game object at 0x7f7913737620>>|Stats|(0, 110, 19, 0, 2)
+[3, 5]|4.0

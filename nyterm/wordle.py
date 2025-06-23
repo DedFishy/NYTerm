@@ -21,6 +21,9 @@ class Wordle:
 
     did_win = False
     letters = "abcdefghijklmnopqrstuvwxyz"
+    letter_row_top = "qwertyuiop"
+    letter_row_middle = "asdfghjkl"
+    letter_row_bottom = "zxcvbnm"
     letter_statuses = {} # -1=unknown, 0=gray, 1=yellow, 2=green
     letter_status_codes = {-1: COLORS["UNKNOWN"], 0: 0, 1: COLORS["YELLOW"], 2: COLORS["GREEN"]}
     letter_grid = []
@@ -81,10 +84,13 @@ class Wordle:
         elif self.guesses > 5:
             message = "Too bad! Solution: " + self.solution.upper()
         if message == None:
-            alphabet_x = int(stdscr.getmaxyx()[1]/2)-(26/2)
-            for letter in self.letter_statuses.keys():
-                util.addstr(stdscr, y, int(alphabet_x), letter.upper(), curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]) | curses.A_BOLD)
-                alphabet_x += 1
+            alphabet_y = y
+            for row in [self.letter_row_top, self.letter_row_middle, self.letter_row_bottom]:
+                alphabet_x = int(stdscr.getmaxyx()[1]/2)-(len(row)/2)
+                for letter in row:
+                    util.addstr(stdscr, alphabet_y, int(alphabet_x), letter.upper(), curses.color_pair(self.letter_status_codes[self.letter_statuses[letter]]) | curses.A_BOLD)
+                    alphabet_x += 1
+                alphabet_y += 1
         else:
             util.addstr(stdscr, y, start_coord_yx[1], message.center(self.LETTER_WIDTH*5))
 

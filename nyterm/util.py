@@ -111,7 +111,7 @@ def run_row_selector(inputs: dict[str, int|bool], stdscr: curses.window, default
 
 def get_average(list):
     if len(list) == 0: return 0
-    return max(list)/len(list)
+    return sum(list)/len(list)
 
 def run_button_row(inputs: list[str], stdscr: curses.window, default, title):
     
