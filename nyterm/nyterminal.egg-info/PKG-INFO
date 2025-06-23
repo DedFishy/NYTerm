@@ -33,4 +33,9 @@ Dynamic: summary
 
 # NYTerminal
 ## Play the (good) NYT games within your terminal!
-I mean, I would explain it more, but it feels pretty simple to me...
+If you ever find yourself in a situation where you have borked your Linux system and are left with nothing but a terminal, or you are being paid by the hour to use a server interface, or you are bored and don't have a browser handy, kill some time with the New York Times games in your terminal!
+
+This program takes advantage of the fact that the free NYT games are publicly available on their servers. For the Wordle, Connections, and the Strands, there are named files for each date (including future dates!) that contain the JSON data for each day. The Mini is similar, but it only has today's puzzle. The Spelling Bee has its data embedded in the webpage, so an HTML parser has been used to facilitate it.
+
+### Installation
+Simply install the package

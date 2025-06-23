@@ -1,1 +1,1 @@
-[3, 5]|4.0
+{'Spelling Bee': 17, 'Mini': 18, 'Strands': 19, 'Connections': 20, 'Wordle': 21, 'Stats': 22, 'Quit': 23}|None|Quit|(0, 160, 8, 0, 2)
